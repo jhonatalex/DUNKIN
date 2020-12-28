@@ -39,7 +39,7 @@ function mostrar($carrito){
         $httpRequest = file_get_contents('http://localhost/DUNKIN/api/productos/api-productos.php?get-item='. $itemCarrito['id']);
         $itemProducto = json_decode($httpRequest, 1)['item'];
         $itemProducto['cantidad'] = $itemCarrito['cantidad'];
-        $itemProducto['subtotal'] = $itemProducto['cantidad'] * $itemProducto['monto'];
+        $itemProducto['subtotal'] = $itemProducto['cantidad'] * $itemProducto['monto']; 
 
         $total += $itemProducto['subtotal'];
         $totalItems += $itemProducto['cantidad'];
@@ -51,6 +51,10 @@ function mostrar($carrito){
     echo json_encode($resArray);
 }
 
+
+
+
+
 function add($carrito){
     if(isset($_GET['id'])){
         $res = $carrito->add($_GET['id']);
@@ -61,6 +65,9 @@ function add($carrito){
                         'response' => 'No se puede procesar la solicitud, id vacio']);
     }
 }
+
+
+
 
 function remove($carrito){
     if(isset($_GET['id'])){

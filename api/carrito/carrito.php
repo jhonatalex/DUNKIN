@@ -15,6 +15,9 @@ class Carrito extends Session{
         return $this->getValue();
     }
 
+
+
+    //AGREGAR
     public function add($id){
         if($this->getValue() == NULL){
             $items = [];
@@ -23,11 +26,11 @@ class Carrito extends Session{
 
             for($i=0; $i<sizeof($items); $i++){
                 if($items[$i]['id'] == $id){
-                    $items[$i]['cantidad']++;
+                    //$items[$i]['cantidad']++;
                     $this->setValue(json_encode($items));
 
                     return $this->getValue();
-                }
+                } 
             }
         }
 
@@ -41,7 +44,11 @@ class Carrito extends Session{
         return $this->getValue();
     }  
 
-    
+
+
+
+
+    // REMOVER
     public function remove($id){
         if($this->getValue() == NULL){
             $items = [];
@@ -49,9 +56,8 @@ class Carrito extends Session{
             $items = json_decode($this->getValue(), 1);
 
             for($i =0; $i< sizeof($items); $i++){
-
                 if($items[$i]['id'] == $id){
-                    $items[$i]['cantidad']--;
+                   // $items[$i]['cantidad']--;
 
                     if($items[$i]['cantidad'] == 0){
                         unset($items[$i]);
