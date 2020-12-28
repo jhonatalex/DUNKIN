@@ -4,15 +4,7 @@ include_once '../Entities/Usuario.php';
 include_once '../Entities/Destinatario.php';
 include_once '../Entities/Venta.php';
 
-
-
-session_start();
-
-
-$_SESSION ['cantidad']=$_POST['count'];
-$_SESSION ['id_producto']=$_POST['product'];
-$_SESSION ['id_email'] =$_POST['email'];
-
+include_once '../api/productos/productos.php';
 
 
 //TRANSKBANK***********************************//
@@ -22,85 +14,126 @@ require_once '../Transbank/vendor/autoload.php';
 use Transbank\Webpay\Webpay;
 use Transbank\Webpay\Configuration;
 
-$transaction = (new Webpay(Configuration::forTestingWebpayPlusNormal()))
- 			-> getNormalTransaction();
 
 
-	
-	$amount = $_POST['valor'];
-	$sessionId='sessionId';
-	$buyOrder=strval(rand(10000,9999999));
-	$returnUrl='http://localhost/DUNKIN/php/return.php';
-	$finalUrl='http://localhost/DUNKIN/php/final.php';
-		
+		if (!empty($_POST['email']) && !empty($_POST['nombre']) && /*!empty($_POST['email_destino']) && */
+			!empty($_POST['count']) && !empty($_POST['monto_tarjeta']) && !empty($_POST["valor"])){
 
-	$initResult = $transaction -> initTransaction($amount, $sessionId, $buyOrder, $returnUrl, $finalUrl);
-   
-	//ASOCIAR EL TOKEN CON LA TRANSACCION
-	$tokenWs = $initResult -> token;
-	echo $amount;
+			$transaction = (new Webpay(Configuration::forTestingWebpayPlusNormal()))
+			-> getNormalTransaction();
+
+			$amount = $_POST['valor'];
+			$sessionId=$_POST['email'];
+			$buyOrder=strval(rand(10000,9999999));
+			$returnUrl='http://localhost/DUNKIN/php/return.php';
+			$finalUrl='http://localhost/DUNKIN/php/final.php';
+				
+			$initResult = $transaction -> initTransaction($amount, $buyOrder, $sessionId, $returnUrl, $finalUrl);
+		   
+			//ASOCIAR EL TOKEN CON LA TRANSACCION
+			$tokenWs = $initResult -> token;
+
+
+			$user=new Usuario();
+			$destino=new Destinatario();
+			$venta=new Venta();
+			$producto=new Productos();
 
 
 
-   ///USUARIO
-		$user=new Usuario();
-		if (isset($_POST['email'])){
-
-			// CONPROBAR SI YA EXISTE EN LA BASE DE DATOS
-			if ($user->duplicacion($_POST['email'], $_POST['nombre'])){
-				echo "<script> alert('USUARIO YA REGISTRADO');
-				window.location='../index.php';
-				</script>";
-			}else{
+			//USUARIO Y CONPROBAR SI YA EXISTE EN LA BASE DE DATOS
+			if (!$user->duplicacion($_POST['email'], $_POST['nombre'])){
 				$user ->insertUser($_POST['email'],$_POST['nombre'],$_POST['celular']);
-				echo "RESGISTRO EXITOSO";
+
 			}
 
-		}else {
-			echo "FAVOR RELLENE LOS CAMPOS";
-		}
+			///DESTINATARIO
+			$destinos=[];
+			for ($i=1; $i <=$_POST['count']; $i++) { 
 
-  ///DESTINATARIO
+
+				$item =[
+					'email_destino'      => $_POST['email_destino_'.$i] ,
+					'nombre_destino'   	 => $_POST['nombre_destino_'.$i],
+					'mensaje_destino'    => $_POST['mensaje_'.$i],
+					'email_origen'       => $_POST['email'],
+					
+				];
+
+				array_push($destinos, $item );
+
+			}
+
+			var_dump($destinos);
+
+			foreach($destinos as $elemento){
+				$destino ->insertDestinatario($elemento['email_destino'], $elemento['nombre_destino'],$elemento['mensaje_destino'],$elemento['email_origen']);
+			}
+
+
+
+
+
+			
 		
-		$destino=new Destinatario();
-		if (isset($_POST['nombre_destino'])){
-			$destino ->insertDestinatario($_POST['email_destino'],$_POST['nombre_destino'],$_POST['mensaje'],$_POST['email']);
-
-  		}
-
-	///VENTA O TRANSACCION Detalle
-		$venta=new Venta();
-		  $venta->insertDetalleVenta($_POST['count'],$_POST['product'],$_POST['email'])
+			
 
 
 
-?>
+			///VENTA O TRANSACCION Detalle
+			$valor=  $venta->insertDetalleVenta($_POST['count'],$_POST['monto_tarjeta'],$_POST['email'],$buyOrder);
 
 
+			///VERIFICAR LA DISPONIVILIDAD DE LAS TARJETAS
+			$items=$producto->getCardByMontoCantidad($_POST['monto_tarjeta'],'disponible',$_POST['count']);
+			
+						if (sizeof($items)<$_POST['count'] || sizeof($items)<=0){
+							
+							echo "NO HAY TARJETAS DE ESE MONTO DISPONIBLES";
+							header("Location: ../layout/fracaso.php");
+							header("Location: final.php");
 
-<?php if (!empty($_POST["valor"])): ?>  
-	
-	
-	<form action="	<?php echo $initResult -> url ?>" method="post" id="returForm">
-	<input type="hidden" name="token_ws" value="<?php echo $tokenWs?>">
-	</form>
+						}else{
 
-	<script>
-	document.getElementById('returForm').submit();
-	</script>   
+						$codigos=[];
+						foreach($items as $item){
+							array_push($codigos, $item['cod_promocion']);
+						}
+					
+
+					}
+
+
+	?>
+
+			<form action="<?php echo $initResult -> url?>" method="post" id="returForm">
+			<input type="hidden" name="token_ws"  value="<?php echo $tokenWs?>">
+			</form>
+
+			<script>
+			//document.getElementById('returForm').submit();
+			</script>   
 
 
 
 <?php 
-else:	echo "<script> alert('No ha seleccionado ninguna Tarjeta');
-		 window.location='../index.php';
-		</script>";
+
+
+		}else {
+			echo "<script> alert('Favor rellene todos los campos Obligatorios y  seleccione una Tarjeta');
+			window.location='../index.php';
+			</script>";
+
+		}
 
 
 
-endif;
+
 
 ?>
+
+
+
 
 
 

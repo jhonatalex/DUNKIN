@@ -1,130 +1,126 @@
-document.addEventListener('DOMContentLoaded', event =>{
-    
-    // cookies para evitar hace runa consulta a base datos y tener actualizado el carrito
-    const cookies = document.cookie.split(';');
-    let cookie = null;
-    cookies.forEach(item =>{
-        if(item.indexOf('items') > -1){
-            cookie = item;
-        }
-    });
-
-    if(cookie != null){
-        const count = cookie.split('=')[1];
-        console.log(count);
-        document.querySelector('.btn-carrito').innerHTML = `(${count}) Carrito`;
-    }
-});
 
 
-
-const bCarrito = document.querySelector('.btn-carrito');
-bCarrito.addEventListener('click', event =>{
-
-    const carritoContainer = document.querySelector('#carrito-container');
-
-
-    //DESPELGAR LA VISTA
-    if(carritoContainer.style.display == ''){
-        carritoContainer.style.display = 'block';
-        actualizarCarritoUI();
-    }else{
-        carritoContainer.style.display = '';
-    }
-});
-
-function actualizarCarritoUI(){
-    fetch('http://localhost/DUNKIN/api/carrito/api-carrito.php?action=mostrar')
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-        let tablaCont = document.querySelector('#tabla');
         let subtotalItem= document.querySelector('#subtotal');
         let totalPago = document.querySelector('#totalcompra');
+
+
+        let montotarjeta = document.querySelector('#monto_tarjeta');
+        const labelcantidad = document.querySelector('.labelcantidad');
         let totaloculto = document.querySelector('#totaloculto');
+
         let cantidad = document.querySelector('#cantidad');
         let idProd = document.querySelector('#idProducto');
+
+        var recipients=document.querySelector('#destinatarios');
+
+        let precioUnitario = '';
         let precioTotal = '';
    
-        let html = '';
-        let html2 = '';
-        let cant=0;
-        let id='';
-
-        data.items.forEach(element =>{
-            html += `
-                <div class='fila'>
-                    <div class='imagen'>
-                        <img src='img/${element.imagen}' width='100' />
-                    </div>
-
-                    <div class='info'>
-                        <input type='hidden' value='${element.id}' />
-                        <div class='nombre'>${element.descripcion}</div>
-                        <div>${element.cantidad} items de $${element.monto} CLP</div>
-                        <div>Subtotal: $${element.subtotal} CLP </div>
-                        
-                    </div>
-                </div>
-            `;
-
-            html2 += `
-                    <div>${element.cantidad} items de $${element.monto} CLP   Subtotal: $${element.subtotal} CLP </div>
-                    `;
-
-             cant+= element.cantidad;
-             id=element.id;    
-        });
-
-
-
-        precioTotal = `<p class='mail'>Total: $${data.info.total} CLP </p>`;
-       // precioTotal = `<input type="hidden" name="mtotal" value= ${data.info.total}>`
-
-        tablaCont.innerHTML = precioTotal + html; // AGREGA EL TOTAL Y EL CONTENDIDO
-        subtotalItem.innerHTML=html2; // DESGLOCE DE LA CANTIDAD
-        
-        totalPago.innerHTML= precioTotal; //TOTAL DE LA COMPRA
-     
-
-        //cantidad.value=cant;
-        cantidad.value=data.info.count 
-        idProd.value=id;     
-        totaloculto.value=data.info.total; // TOTAL OCULTO
-
-
-
-        //actulalizo el texto del boton dinamicamente
-        document.cookie = `items=${data.info.count}`;
-        bCarrito.innerHTML = `(${data.info.count}) Carrito`;
-
-
-        const labelcantidad = document.querySelector('.labelcantidad');
-        labelcantidad.innerHTML = `${data.info.count}`;
-
-
-        
-    });
-}
-
-//Boton Remover un item seleccionando todos los botones
-const botonesRemover =document.querySelectorAll('.btn-remove')
-botonesRemover.forEach(boton =>{
-        boton.addEventListener('click', e =>{
-                const id = boton.parentElement.parentElement.children[0].value;
-                removeItemFromCarrito(id);
-        });
-});
+        var contador=0;
+       
+        let plantillaDestinatario;
+    
 
 
 //Seleccionar elemento AGREGAR
 const botonesAgregar = document.querySelectorAll('.btn-add');
 botonesAgregar.forEach(boton =>{
         boton.addEventListener('click', e =>{
-            const id = boton.parentElement.parentElement.children[0].value;
-            addItemToCarrito(id);
+
+            let monto = document.getElementById("select_monto").value;
+            contador++;
+            labelcantidad.innerHTML = `${contador}`;
+            cantidad.value=contador;   //CANTIDAD
+            montotarjeta.value=monto;  // PRECIO UNITARIO
+            totaloculto.value= monto * contador; // TOTAL OCULTO
+
+              // const id = boton.parentElement.parentElement.children[0].value;
+            //addItemToCarrito(id);
+           
+
+            
+                 plantillaDestinatario += `
+
+                                 <h3> DESTINATARIO ${contador} </h3>
+                                <div class="col-md-8">
+                                    <input type="text" placeholder="Nombre y Apellido del Destinatario" name="nombre_destino_${contador}"
+                                        id="nombre">
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="email" placeholder="Email Destinatario" name="email_destino_${contador}" id="email_destino_${contador}">
+                                </div>
+                                <div class="col-md-8">
+                                    <textarea cols="10" rows="1" placeholder="Dedicatoria... Opcional" name="mensaje_${contador}"
+                                        id="mensaje"></textarea>
+                                    <div class="error errormensaje"></div>
+                                </div> 
+       
+        `;
+
+
+        recipients.innerHTML = plantillaDestinatario;
+
+
+
+
+
     });
 });
+
+
+
+
+//Boton Remover un item seleccionando todos los botones
+const botonesRemover =document.querySelectorAll('.btn-remove')
+botonesRemover.forEach(boton =>{
+        boton.addEventListener('click', e =>{
+            
+            let monto = document.getElementById("select_monto").value;
+            contador--;
+            const labelcantidad = document.querySelector('.labelcantidad');
+            labelcantidad.innerHTML = `${contador}`;
+            cantidad.value=contador;   //CANTIDAD
+            montotarjeta.value=monto;  // PRECIO UNITARIO
+            totaloculto.value= monto * contador; // TOTAL OCULTO
+
+                //const id = boton.parentElement.parentElement.children[0].value;
+                //removeItemFromCarrito(id);
+
+
+                plantillaDestinatario -= `
+
+                    
+                <h3> DESTINATARIO ${contador} </h3>
+               <div class="col-md-8">
+                   <input type="text" placeholder="Nombre y Apellido del Destinatario" name="nombre_destino_${contador}"
+                       id="nombre">
+               </div>
+               <div class="col-md-8">
+                   <input type="email" placeholder="Email Destinatario" name="email_destino_${contador}" id="email_destino_${contador}">
+               </div>
+               <div class="col-md-8">
+                   <textarea cols="10" rows="1" placeholder="Dedicatoria... Opcional" name="mensaje_${contador}"
+                       id="mensaje"></textarea>
+                   <div class="error errormensaje"></div>
+               </div> 
+
+            `;
+
+
+            recipients.innerHTML = plantillaDestinatario;
+
+
+
+
+
+        });
+});
+
+
+
+
+
+
 
 //AGREGAR ELEMENTO
 function addItemToCarrito(id){

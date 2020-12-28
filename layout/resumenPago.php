@@ -25,22 +25,12 @@ $buyOrder=strval(rand(10000,9999999));
                             <div class="error errorcel"></div>
                         </div>
 
-           
-                        <h2>DESTINATARIO</h2>
-                        <div class="col-md-8">
-                            <input type="text" placeholder="Nombre y Apellido del Destinatario" name="nombre_destino"
-                                id="nombre">
+
+                        
+                        <div id="destinatarios">
+                          
                         </div>
-      
-                        <div class="col-md-8">
-                            <input type="email" placeholder="Email Destinatario" name="email_destino" id="email_destino">
-                 
-            
-                        <div class="col-md-8">
-                            <textarea cols="10" rows="1" placeholder="Dedicatoria... Opcional" name="mensaje"
-                                id="mensaje"></textarea>
-                            <div class="error errormensaje"></div>
-                        </div>
+                        
 
 
                         <h2>Pago con Webpay</h2>
@@ -48,16 +38,15 @@ $buyOrder=strval(rand(10000,9999999));
                         <p>Detalle</p>
          
 
-                            <label id = "subtotal" >  </label>  
+                        <p><b>cantidad</b>:  <?php echo $buyOrder ?>  </p>
+                        <p><b>Orden de Compra</b>:  <?php echo $buyOrder ?>  </p>
                             <spam id = "totalcompra" ></spam> 
-                            <input  type="hidden" name="count" id = "cantidad" >
-                            <input  type="hidden" name="product" id = "idProducto" >
-                            <input  type="hidden" name="valor" id = "totaloculto" >
+                            <input   name="count" id = "cantidad" >
+                            <input   name="monto_tarjeta" id = "monto_tarjeta" >
+                            <input  name="valor" id = "totaloculto" >
                             <button type="submit" class="btnpagar">Pagar</button>
 
           
-
-
              </form>
 
 

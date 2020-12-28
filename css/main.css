@@ -42,10 +42,11 @@ main{
 
 .articulo{
     display: inline-block;
-    padding: 10px;
+    padding-left: 178px;
+    padding-bottom: 10px;
     vertical-align: top;
     text-align: center;
-    width: 176px;
+   
 }
 .articulo div{
     padding: 5px 0;
@@ -109,6 +110,12 @@ button{
     padding: 40px 0 5px 115px;
   
 }
+
+.footer{
+    margin-bottom: 150px;
+  
+}
+
 
 
 #carrito-container{
